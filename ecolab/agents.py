@@ -10,9 +10,10 @@ import random
 
 INFANT_NATURE_MOTALITY_RATE = 0.0002
 ADULT_NATURE_MOTALITY_RATE = 0.0013
+CARCASS_INFECTION_PROB = 0.2
 #RHD_INFECTION_PROB = 1.27 * 10e-4
 #PREGNANT_PROB = 0.4
-MAX_CAPCITY = 40 # max capcity for each grid
+MAX_CAPCITY = 15 # max capcity for each grid
 class RHD_Status(Enum):
     """
     RHD_Status
@@ -41,6 +42,7 @@ class Rabbit:
     """
     pregnancy_days = -1
     infected_days = -1
+    days_dead = -1
     maxage = 3650
     def __init__(self,position,age,infected=False):
         self.position = position
@@ -80,16 +82,22 @@ class Rabbit:
         
         if self.rhd_status == RHD_Status.Infected and self.infected_days > 0: ##infected death begins on the 2nd infected day
             # self.death = (np.random.rand() > 0.1 * self.infected_days)
-            self.death = (np.random.rand() < np.exp(-self.infected_days))
-        if self.death == True: return 
+            self.death = (np.random.rand() < np.exp(2*-self.infected_days))
+            self.days_dead = 0
+        if self.death == True: 
+            self.days_dead = 0
+            return 
         # nature death
         if self.age > self.maxage: 
             self.death = True
+            self.days_dead = 0
             return 
         if self.type == AgentType.Infants:
             self.death =  (np.random.rand() < INFANT_NATURE_MOTALITY_RATE)
+            self.days_dead = 0
         else:
             self.death = (np.random.rand() < ADULT_NATURE_MOTALITY_RATE)
+            self.days_dead = 0
     
     @numba.jit         
     def get_nearby_rabbit(self, position, agents):
@@ -104,17 +112,15 @@ class Rabbit:
                 a.infected_days = 0
                 a.rhd_status = RHD_Status.Infected
                 cnt += 1
-            if cnt == 2: break
-        # nearby_susceptible_agents = [a for a in agents if (a.rhd_status == RHD_Status.Susceptible and (a.position == self.position).all())]
-        # # nearby_infected_agents = [a for a in agents if a.rhd_status == RHD_Status.Infected and a.infected_days > 0 and np.abs(a.position[0] - self.position[0]) < 2 and np.abs(a.position[1] - self.position[1]) < 2]
-        # if len(nearby_susceptible_agents) > 0:
-        #     chosen_agent = random.sample(nearby_susceptible_agents, 2)
-        #     for a in chosen_agent:
-        #         a.infected_days = 0   ## initial day of infection
-        #         a.rhd_status = RHD_Status.Infected
-            
-            # print("one rabbit get infected")
+            if cnt == 2: break          
+             
             #np.abs(a.position[0] - self.position[0]) < 2 and np.abs(a.position[1] - self.position[1]) < 2)
+    def carcasses_infection(self, agents):
+        nearby_dead_agents = [a for a in agents if (a.death == True and a.days_dead < 90 and a.position.all() == self.position.all())]                           
+        if len(nearby_dead_agents) > 0 and np.random.rand() <= CARCASS_INFECTION_PROB:
+            print("there was a dead rabbit")
+            self.infected_days = 0 
+            self.rhd_status = RHD_Status.Infected
 
     # @numba.jit 
     def reproduct(self, agents):
@@ -155,6 +161,8 @@ class Rabbit:
             self.rhd_status = RHD_Status.Recoverd_Immune
             self.infected_days = -1
             
+        if self.death == True:
+            self.days_dead += 1
             
         if self.age > 90:
             self.speed = 5
