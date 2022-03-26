@@ -4,19 +4,21 @@ import matplotlib
 from ecolab.agents import Rabbit, RHD_Status, Gender, AgentType
 import matplotlib.pyplot as plt
 
+
+
 @numba.jit  
-def run_ecolab(env, agents, Niteration=360, earlystop=True):
+def run_ecolab(env, agents, Niteration=[0, 360],  sus=[], infected=[],immune=[],infant=[],total=[],days=[],earlystop=True):
 
     record=[] #TODO
-    sus = []
-    infected = []
-    immune = []
-    #male = []
-    #female = []
-    infant = []
-    total =[]
-    days=[]
-    for it in range(Niteration):
+    # sus = []
+    # infected = []
+    # immune = []
+    # #male = []
+    # #female = []
+    # infant = []
+    # total =[]
+    # days=[]
+    for it in range(Niteration[0], Niteration[1], 1):
         print("iteration: %g" %it)
         month = (it / 30) % 12  ## 0~11 ->  Jan~Dec
         for agent in agents:
@@ -48,16 +50,16 @@ def run_ecolab(env, agents, Niteration=360, earlystop=True):
         #print("the number of infected agents: ", len(record[it]['infected agents']))
         #print("the number of immune agents:", len(record[it]['immune agents']))
         #print("===========================================")    
-        days.append(it)
-        sus.append(len(record[it]['susceptible agents']))
-        infected.append(len(record[it]['infected agents']))
-        immune.append(len(record[it]['immune agents']))
+        # days.append(it)
+        sus.append(len(record[it - Niteration[0]]['susceptible agents']))
+        infected.append(len(record[it - Niteration[0]]['infected agents']))
+        immune.append(len(record[it - Niteration[0]]['immune agents']))
         total.append(len(agents))
         infant.append(len([a for a in agents if a.type == AgentType.Infants]))                
         
         if earlystop:
             if len(agents)==0: break
     
-    return record, sus, infected, immune, total, infant       
+    return record, sus, infected, immune, total, infant, agents       
 
     
