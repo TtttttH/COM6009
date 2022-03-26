@@ -26,14 +26,15 @@ def run_ecolab(env, agents, Niteration=360, earlystop=True):
             agent.move(env)
             agent.die()
             
-        agents = [a for a in agents if a.death == False]
+        agents = [a for a in agents]
         for agent in agents:
-            if agent.rhd_status == RHD_Status.Infected and agent.infected_days > 0:
+            if agent.death == False and agent.rhd_status == RHD_Status.Infected and agent.infected_days > 0:
                 agent.infection(agents)
             newborn = agent.born_new_rabbit(agents, env)
             if newborn is not None:
                 agents += newborn
-        
+            if agent.death == False and agent.type == AgentType.Adults and agent.rhd_status == RHD_Status.Susceptible:
+                agent.carcasses_infection(agents)
         
         record.append({'susceptible agents': np.array([a.summary_vector() for a in agents if a.rhd_status == RHD_Status.Susceptible]),
                       'infected agents': np.array([a.summary_vector() for a in agents if a.rhd_status == RHD_Status.Infected]),
