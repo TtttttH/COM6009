@@ -54,7 +54,7 @@ class Rabbit:
             self.rhd_status = RHD_Status.Susceptible
         else :
             self.rhd_status = RHD_Status.Infected
-            self.infected_days = 1
+            self.infected_days = 0
         if age < 90:
             self.speed = 0
             self.type = AgentType.Infants
@@ -66,6 +66,7 @@ class Rabbit:
     @numba.jit         
     def try_move(self, newposition, env):
         if env.check_position(newposition):
+            # print("agent move from:", self.position, "to:", newposition)
             self.position = newposition
     
     @numba.jit        
@@ -76,11 +77,11 @@ class Rabbit:
             self.try_move(self.position + delta, env)   
     
     @numba.jit    
-    def die(self):
+    def die(self, agents):
         
         if self.rhd_status == RHD_Status.Infected and self.infected_days > 0: ##infected death begins on the 2nd infected day
             # self.death = (np.random.rand() > 0.1 * self.infected_days)
-            self.death = (np.random.rand() < np.exp(-self.infected_days))
+            self.death = (np.random.rand() < np.exp(-2*self.infected_days))
         if self.death == True: return 
         # nature death
         if self.age > self.maxage: 
@@ -100,7 +101,7 @@ class Rabbit:
         cnt = 0
         for a in agents:
             if (a.type == AgentType.Adults and a.rhd_status == RHD_Status.Susceptible and (a.position == self.position).all()):
-                print("one rabbbit get infected")
+                # print("one rabbbit get infected")
                 a.infected_days = 0
                 a.rhd_status = RHD_Status.Infected
                 cnt += 1
@@ -119,7 +120,8 @@ class Rabbit:
     # @numba.jit 
     def reproduct(self, agents):
         same_grid_male = [a for a in agents if (a.death == False and a.type == AgentType.Adults and a.gender == Gender.Male and (a.position == self.position).all())]
-        prob = np.random.randint(11,83) / 100
+        # prob = np.random.randint(11,83) / 100
+        prob = np.random.uniform(0.06, 0.44)
         if len(same_grid_male) > 0 and np.random.rand() <= prob:
             self.pregnancy_days = 0
             # print("one female adult rabbit get pregant")
