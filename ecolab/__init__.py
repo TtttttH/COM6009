@@ -6,17 +6,14 @@ import matplotlib.pyplot as plt
 
 
 @numba.jit  
-def run_ecolab(env, agents, Niteration=[0, 360],  sus=[], infected=[],immune=[],infant=[],total=[],max_density = 40, earlystop=True):
+def run_ecolab(env, agents, Niteration=[0, 360], max_density = 40, earlystop=True):
 
-    record=[] #TODO
-    # sus = []
-    # infected = []
-    # immune = []
-    # #male = []
-    # #female = []
-    # infant = []
-    # total =[]
-    # days=[]
+    record=[]
+    sus = []
+    infected = []
+    immune = []
+    infant = []
+    total =[]
     preg_prob = {11: 11/365,
                  0: 35/365,
                  1: 59/365,
