@@ -10,9 +10,7 @@ import numba
 INFANT_NATURE_MOTALITY_RATE = 0.0002
 ADULT_NATURE_MOTALITY_RATE = 0.0013
 CARCASS_INFECTION_PROB = 0.2
-#RHD_INFECTION_PROB = 1.27 * 10e-4
-#PREGNANT_PROB = 0.4
-MAX_CAPCITY = 40 # max capcity for each grid
+# MAX_CAPCITY = 40 # max capcity for each grid
 class RHD_Status(Enum):
     """
     RHD_Status
@@ -102,7 +100,7 @@ class Rabbit:
     #     return [a for a in agents if (np.abs(a.position[0] - position[0]) < 2 and np.abs(a.position[1] - position[1]) < 2)]
     
     def carcasses_infection(self, death_in_90_days_agents):
-        nearby_dead_agents = [a for a in death_in_90_days_agents if a.position.all() == self.position.all()]                           
+        nearby_dead_agents = [a for a in death_in_90_days_agents if (a.position== self.position).all()]                           
         if len(nearby_dead_agents) > 0 and np.random.rand() <= CARCASS_INFECTION_PROB:
             # print("there was a in-90days dead infected rabbit")
             self.infected_days = 0 
@@ -128,11 +126,11 @@ class Rabbit:
     
     
     @numba.jit             
-    def born_new_rabbit(self,agents,env):
+    def born_new_rabbit(self,agents,env,max_density):
         if self.pregnancy_days > 30:
             self.pregnancy_days = -1
             alive_num = len([a for a in agents if not a.death])
-            if alive_num/ env.shape[0] < MAX_CAPCITY:
+            if alive_num/ env.shape[0] < max_density:
                 litter_num = np.random.randint(2, 8)
                 newborn =[]
                 i = 0

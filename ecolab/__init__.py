@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 
 
 @numba.jit  
-def run_ecolab(env, agents, Niteration=[0, 360],  sus=[], infected=[],immune=[],infant=[],total=[],earlystop=True):
+def run_ecolab(env, agents, Niteration=[0, 360],  sus=[], infected=[],immune=[],infant=[],total=[],max_density = 40, earlystop=True):
 
     record=[] #TODO
     # sus = []
@@ -49,7 +49,7 @@ def run_ecolab(env, agents, Niteration=[0, 360],  sus=[], infected=[],immune=[],
             
             if agent.type == AgentType.Adults and agent.rhd_status == RHD_Status.Susceptible:
                 agent.carcasses_infection(death_in_90_days_agents)
-            newborn = agent.born_new_rabbit(agents, env)
+            newborn = agent.born_new_rabbit(agents, env, max_density)
             if newborn is not None:
                 agents += newborn
         
