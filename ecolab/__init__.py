@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 @numba.jit  
 def run_ecolab(env, agents, Niteration=[0, 360], max_density = 40, earlystop=True):
 
-    record=[]
+    record = []
     sus = []
     infected = []
     immune = []
@@ -51,9 +51,16 @@ def run_ecolab(env, agents, Niteration=[0, 360], max_density = 40, earlystop=Tru
                 agents += newborn
         
         alive_agents = [a for a in agents if not a.death]
-        record.append({'susceptible agents': np.array([a.summary_vector() for a in alive_agents if a.type ==AgentType.Adults and a.rhd_status == RHD_Status.Susceptible]),
-                      'infected agents': np.array([a.summary_vector() for a in alive_agents if a.rhd_status == RHD_Status.Infected]),
-                      'immune agents': np.array([a.summary_vector() for a in alive_agents if a.rhd_status == RHD_Status.Recoverd_Immune])})   
+        for alive in alive_agents:
+            if alive.rhd_status == RHD_Status.Infected:
+                record.append(np.array([alive.position[0], alive.position[1], 1]))
+            elif alive.rhd_status == RHD_Status.Recoverd_Immune:
+                record.append(np.array([alive.position[0], alive.position[1], 2]))
+            elif alive.rhd_status == RHD_Status.Susceptible and alive.type == AgentType.Adults:
+                record.append(np.array([alive.position[0], alive.position[1], 0]))
+        # collection.append({'susceptible agents': np.array([a.summary_vector() for a in alive_agents if a.type ==AgentType.Adults and a.rhd_status == RHD_Status.Susceptible]),
+        #               'infected agents': np.array([a.summary_vector() for a in alive_agents if a.rhd_status == RHD_Status.Infected]),
+        #               'immune agents': np.array([a.summary_vector() for a in alive_agents if a.rhd_status == RHD_Status.Recoverd_Immune])})   
         
         #print("the number of whole agents: ", len(agents))
         #print("the number of Female adults", len([a for a in agents if a.type == AgentType.Adults and a.gender == Gender.Female]))
@@ -65,9 +72,9 @@ def run_ecolab(env, agents, Niteration=[0, 360], max_density = 40, earlystop=Tru
         #print("the number of immune agents:", len(record[it]['immune agents']))
         #print("===========================================")    
         # days.append(it)
-        sus.append(len(record[it - Niteration[0]]['susceptible agents']))
-        infected.append(len(record[it - Niteration[0]]['infected agents']))
-        immune.append(len(record[it - Niteration[0]]['immune agents']))
+        sus.append(len([a for a in alive_agents if a.type == AgentType.Adults and a.rhd_status == RHD_Status.Susceptible]))
+        infected.append(len([a for a in alive_agents if a.rhd_status == RHD_Status.Infected]))
+        immune.append(len([a for a in alive_agents if a.rhd_status == RHD_Status.Recoverd_Immune]))
         total.append(len(alive_agents))
         infant.append(len([a for a in alive_agents if a.type == AgentType.Infants]))                
         
