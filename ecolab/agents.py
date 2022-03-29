@@ -130,7 +130,7 @@ class Rabbit:
         if self.pregnancy_days > 30:
             self.pregnancy_days = -1
             alive_num = len([a for a in agents if not a.death])
-            if alive_num/ env.shape[0] < max_density:
+            if alive_num/(env.shape[0] * env.shape[1]) < max_density:
                 litter_num = np.random.randint(2, 8)
                 newborn =[]
                 i = 0
