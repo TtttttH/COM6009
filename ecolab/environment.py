@@ -1,3 +1,7 @@
+"""
+@author: acp21ht
+"""
+
 import numpy as np
 import numba
 import matplotlib.pyplot as plt
