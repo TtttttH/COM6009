@@ -69,14 +69,14 @@ class Rabbit:
             # print("agent move from:", self.position, "to:", newposition)
             self.position = newposition
     
-    @numba.jit        
+    @numba.jit     
     def move(self, env):
         if self.speed > 0:
             d = np.random.rand()*2*np.pi
             delta = np.round(np.array([np.cos(d),np.sin(d)]) * np.random.randint(0, self.speed + 1)) 
             self.try_move(self.position + delta, env)   
     
-    @numba.jit    
+    @numba.jit   
     def die(self):
         
         if self.rhd_status == RHD_Status.Infected and self.infected_days > 0: ##infected death begins on the 2nd infected day
@@ -117,32 +117,31 @@ class Rabbit:
                 cnt += 1
             if cnt == 2: break
 
-    # @numba.jit 
-    def reproduct(self, agents, prob):
-        same_grid_male = [a for a in agents if (not a.death and a.type == AgentType.Adults and a.gender == Gender.Male and (a.position == self.position).all())]
+    @numba.jit 
+    def reproduct(self, alive_male_adults, prob):
+        # same_grid_male = [a for a in alive_male_adults if (not a.death and a.type == AgentType.Adults and a.gender == Gender.Male and (a.position == self.position).all())]
+        same_grid_male = [a for a in alive_male_adults if (a.position == self.position).all()]
+
         if len(same_grid_male) > 0 and np.random.rand() <= prob:
             self.pregnancy_days = 0
             # print("one female adult rabbit get pregant")
     
     
-    @numba.jit             
-    def born_new_rabbit(self,agents,env,max_density):
-        if self.pregnancy_days > 30:
-            self.pregnancy_days = -1
-            alive_num = len([a for a in agents if not a.death])
-            if alive_num/ env.shape[0] < max_density:
-                litter_num = np.random.randint(2, 8)
-                newborn =[]
-                i = 0
-                for i in range(litter_num):
-                    newborn.append(Rabbit(position = self.position, age = 1))
-                    i += 1
+    @numba.jit        
+    def born_new_rabbit(self, agents, alive_agents, env, max_density):
+        self.pregnancy_days = -1
+        if len(alive_agents)/ (env.shape[0] * env.shape[1]) < max_density:
+            litter_num = np.random.randint(2, 8)
+            newborn =[]
+            i = 0
+            for i in range(litter_num):
+                newborn.append(Rabbit(position = self.position, age = 1))
+                i += 1
                  # print("here is newborn , number:", len(newborn))
-                return newborn
-        
-        return None
+            agents += newborn
+            alive_agents += newborn
             
-    @numba.jit 
+    @numba.jit
     def other_daily_grow(self): # run this function first in each day loop
         if self.death == True:
             self.days_dead += 1
