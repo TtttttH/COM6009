@@ -1,6 +1,7 @@
 
 """
-@author: Eurus.T
+@author: acp21ht(80%) acv20lc(10%), acq21aa(10%)
+(acq21aa, acv20lc, acp21ht tested and optimized codes together)
 """
 from enum import Enum
 import numpy as np
@@ -9,8 +10,6 @@ import numba
 
 INFANT_NATURE_MOTALITY_RATE = 0.0002
 ADULT_NATURE_MOTALITY_RATE = 0.0013
-CARCASS_INFECTION_PROB = 0.2
-# MAX_CAPCITY = 40 # max capcity for each grid
 class RHD_Status(Enum):
     """
     RHD_Status
@@ -80,8 +79,8 @@ class Rabbit:
     def die(self):
         
         if self.rhd_status == RHD_Status.Infected and self.infected_days > 0: ##infected death begins on the 2nd infected day
-            # self.death = (np.random.rand() > 0.1 * self.infected_days)
-            self.death = (np.random.rand() < np.exp(-2*self.infected_days))
+            # self.death = (np.random.rand() < np.exp(-2 * self.infected_days))
+            self.death = (np.random.rand() < np.exp(-self.infected_days))
         # nature death
         if self.age > self.maxage and not self.death: 
             self.death = True
@@ -95,19 +94,16 @@ class Rabbit:
         if self.death:
             self.days_dead = 0
     
-    # @numba.jit         
-    # def get_nearby_rabbit(self, position, agents):
-    #     return [a for a in agents if (np.abs(a.position[0] - position[0]) < 2 and np.abs(a.position[1] - position[1]) < 2)]
-    
-    def carcasses_infection(self, death_in_90_days_agents):
+    #author acv20lc
+    def carcasses_infection(self, death_in_90_days_agents, carcass_infection_prob):
         nearby_dead_agents = [a for a in death_in_90_days_agents if (a.position== self.position).all()]                           
-        if len(nearby_dead_agents) > 0 and np.random.rand() <= CARCASS_INFECTION_PROB:
+        if len(nearby_dead_agents) > 0 and np.random.rand() <= carcass_infection_prob:
             # print("there was a in-90days dead infected rabbit")
             self.infected_days = 0 
             self.rhd_status = RHD_Status.Infected
 
     @numba.jit 
-    def infection(self, alive_agents):
+    def infection(self, alive_agents, transmission):
         cnt = 0
         for a in alive_agents:
             if (a.type == AgentType.Adults and a.rhd_status == RHD_Status.Susceptible and (a.position == self.position).all()):
@@ -115,7 +111,7 @@ class Rabbit:
                 a.infected_days = 0
                 a.rhd_status = RHD_Status.Infected
                 cnt += 1
-            if cnt == 2: break
+            if cnt == transmission: break
 
     @numba.jit 
     def reproduct(self, alive_male_adults, prob):
